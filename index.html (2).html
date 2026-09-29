@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowX - Smart Task Management & Authentication Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans antialiased text-slate-200 bg-slate-950">
+
+    <!-- AUTHENTICATION SCREEN -->
+    <div id="authScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-md">
+        <div class="w-full max-w-md space-y-6">
+            <!-- Brand Logo -->
+            <div class="text-center space-y-2">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 shadow-xl shadow-indigo-500/30 mb-1">
+                    <i class="fa-solid fa-bolt text-2xl text-white"></i>
+                </div>
+                <h2 class="text-3xl font-extrabold tracking-tight text-white">Welcome to <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">FlowX</span></h2>
+                <p class="text-xs text-slate-400">Select your account type to access your personalized workspace.</p>
+            </div>
+
+            <!-- Login Container -->
+            <div class="glass-panel p-6 rounded-2xl border-slate-800 shadow-2xl space-y-5">
+                <!-- Role Tabs -->
+                <div class="grid grid-cols-2 p-1 bg-slate-900/90 rounded-xl border border-slate-800">
+                    <button id="tabBtnManager" onclick="setAuthTab('manager')" class="py-2 text-xs font-bold rounded-lg transition-all bg-indigo-600 text-white shadow">
+                        <i class="fa-solid fa-user-tie mr-1.5"></i> Manager Login
+                    </button>
+                    <button id="tabBtnEmployee" onclick="setAuthTab('employee')" class="py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200">
+                        <i class="fa-solid fa-user mr-1.5"></i> Employee Login
+                    </button>
+                </div>
+
+                <!-- Manager Login Form -->
+                <form id="formManager" onsubmit="handleLogin(event, 'manager')" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Manager Account</label>
+                        <select id="managerAccountSelect" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Passcode / Key</label>
+                        <input type="password" value="••••••••" readonly class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-400 focus:outline-none cursor-not-allowed">
+                    </div>
+                    <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition">
+                        Log In as Manager &rarr;
+                    </button>
+                </form>
+
+                <!-- Employee Login Form -->
+                <form id="formEmployee" onsubmit="handleLogin(event, 'employee')" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Select Employee Account</label>
+                        <select id="employeeAccountSelect" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Passcode / Key</label>
+                        <input type="password" value="••••••••" readonly class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-400 focus:outline-none cursor-not-allowed">
+                    </div>
+                    <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-purple-600/30 transition">
+                        Log In as Employee &rarr;
+                    </button>
+                </form>
+
+                <!-- Quick Presets -->
+                <div class="pt-3 border-t border-slate-800 text-center space-y-2">
+                    <p class="text-[11px] font-medium text-slate-400">Quick One-Click Demo Access:</p>
+                    <div class="flex flex-wrap items-center justify-center gap-2" id="quickLoginBadges">
+                        <!-- Dynamic demo buttons -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP HEADER -->
+    <header class="h-16 border-b border-slate-800 bg-slate-900/80 sticky top-0 z-30 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                <i class="fa-solid font-bold text-xl text-white fa-bolt"></i>
+            </div>
+            <div>
+                <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">Flow<span class="text-indigo-500">X</span></span>
+                <span class="text-xs px-2 py-0.5 ml-2 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hidden sm:inline-block">v2.5 Enterprise</span>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <!-- Profile & Active Role -->
+            <div class="flex items-center space-x-3 pl-3 border-slate-800">
+                <div class="w-9 h-9 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 font-bold flex items-center justify-center text-sm" id="userAvatar">
+                    M
+                </div>
+                <div class="hidden sm:block text-xs">
+                    <p class="font-semibold text-slate-200" id="userNameDisplay">Rajlucky</p>
+                    <p class="text-slate-400" id="userRoleDisplay">Project Manager</p>
+                </div>
+            </div>
+
+            <!-- Logout Button -->
+            <button onclick="logout()" class="px-3 py-1.5 rounded-xl border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 text-xs font-semibold transition flex items-center gap-1.5" title="Log out of FlowX">
+                <i class="fa-solid fa-right-from-bracket text-xs"></i>
+                <span class="hidden sm:inline">Logout</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <div class="flex-1 flex overflow-hidden">
+
+        <aside class="w-64 border-r border-slate-800/80 bg-slate-900/40 hidden md:flex flex-col justify-between p-4">
+            <div class="space-y-6">
+                <div>
+                    <p class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Navigation</p>
+                    <nav class="space-y-1">
+                        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all bg-indigo-600/10 text-indigo-400 border border-indigo-500/20">
+                            <i class="fa-solid fa-chart-pie w-5"></i>
+                            <span>Dashboard & Tasks</span>
+                        </button>
+                        <button onclick="switchTab('analytics')" id="nav-analytics" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800/50 hover:text-slate-200">
+                            <i class="fa-solid fa-chart-line w-5"></i>
+                            <span>Performance Hub</span>
+                        </button>
+                        <button onclick="switchTab('team')" id="nav-team" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800/50 hover:text-slate-200">
+                            <i class="fa-solid fa-users w-5"></i>
+                            <span>Team Overview</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Quick Filters</p>
+                    <div class="space-y-1">
+                        <button onclick="filterByPriority('High')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs text-slate-400 hover:bg-slate-800/40 hover:text-red-400">
+                            <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-red-500 mr-2"></span>High Priority</span>
+                            <span class="bg-red-500/10 text-red-400 px-1.5 py-0.5 rounded text-[10px]" id="badgeHighCount">0</span>
+                        </button>
+                        <button onclick="filterByPriority('Medium')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs text-slate-400 hover:bg-slate-800/40 hover:text-amber-400">
+                            <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-amber-500 mr-2"></span>Medium Priority</span>
+                            <span class="bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded text-[10px]" id="badgeMedCount">0</span>
+                        </button>
+                        <button onclick="filterByPriority('Low')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs text-slate-400 hover:bg-slate-800/40 hover:text-emerald-400">
+                            <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>Low Priority</span>
+                            <span class="bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded text-[10px]" id="badgeLowCount">0</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Manager Action Box -->
+            <div class="glass-panel p-4 rounded-2xl border border-indigo-500/20 text-center relative overflow-hidden" id="sidebarCreateCard">
+                <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-indigo-500/10 rounded-full blur-xl pointer-events-none"></div>
+                <i class="fa-solid fa-square-plus text-3xl text-indigo-400 mb-2"></i>
+                <h4 class="text-xs font-bold text-slate-200">Assign New Task</h4>
+                <p class="text-[11px] text-slate-400 mt-1 mb-3">Set deliverables & deadlines for employees.</p>
+                <button onclick="openCreateTaskModal()" class="w-full py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/30 transition">
+                    + Create Task
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+            <!-- Toast Container -->
+            <div id="toastContainer" class="fixed bottom-6 right-6 z-50 space-y-2 pointer-events-none"></div>
+
+            <!-- TAB 1: DASHBOARD & TASKS -->
+            <div id="tab-dashboard" class="space-y-6">
+                <!-- Top Header -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+                            <span id="welcomeTitle">Team Workspace & Workflow</span>
+                        </h1>
+                        <p class="text-xs sm:text-sm text-slate-400 mt-0.5" id="welcomeSub">Monitor task progression, deadlines, and employee deliverables.</p>
+                    </div>
+
+                    <div class="flex items-center space-x-3">
+                        <button id="createTaskBtnMain" onclick="openCreateTaskModal()" class="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-indigo-600/25 flex items-center gap-2 transition">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>New Task</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Overview -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="glass-panel p-4 rounded-2xl border-slate-800/80 flex flex-col justify-between">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-xs font-semibold">Total Assigned</span>
+                            <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-list-check"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <span class="text-2xl font-extrabold text-white" id="statTotalTasks">0</span>
+                            <span class="text-[11px] text-slate-400 block mt-0.5">Tasks in workspace</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-2xl border-slate-800/80 flex flex-col justify-between">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-xs font-semibold">Completed</span>
+                            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <span class="text-2xl font-extrabold text-emerald-400" id="statCompletedTasks">0</span>
+                            <span class="text-[11px] text-slate-400 block mt-0.5">Finished on schedule</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-2xl border-slate-800/80 flex flex-col justify-between">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-xs font-semibold">Completion Rate</span>
+                            <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-clock font-bold"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <span class="text-2xl font-extrabold text-purple-300" id="statOnTimeRate">0%</span>
+                            <span class="text-[11px] text-slate-400 block mt-0.5">Overall deliverable score</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-2xl border-slate-800/80 flex flex-col justify-between">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-xs font-semibold">Overdue Tasks</span>
+                            <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <span class="text-2xl font-extrabold text-rose-400" id="statOverdueTasks">0</span>
+                            <span class="text-[11px] text-slate-400 block mt-0.5">Past deadline limit</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters Bar -->
+                <div class="glass-panel p-4 rounded-2xl space-y-3">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+                            <input type="text" id="searchInput" oninput="renderTasks()" placeholder="Search by title, description or assigned member..." class="w-full bg-slate-900/80 text-xs text-slate-200 border border-slate-700/80 rounded-xl pl-9 pr-4 py-2.5 focus:outline-none focus:border-indigo-500 placeholder-slate-500">
+                        </div>
+
+                        <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+                            <select id="filterStatus" onchange="renderTasks()" class="bg-slate-900/80 text-xs border border-slate-700/80 text-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500">
+                                <option value="ALL">All Statuses</option>
+                                <option value="To Do">To Do</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Submitted">Submitted (For Review)</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+
+                            <select id="filterPriority" onchange="renderTasks()" class="bg-slate-900/80 text-xs border border-slate-700/80 text-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500">
+                                <option value="ALL">All Priorities</option>
+                                <option value="High">High Priority</option>
+                                <option value="Medium">Medium Priority</option>
+                                <option value="Low">Low Priority</option>
+                            </select>
+
+                            <select id="filterAssignee" onchange="renderTasks()" class="bg-slate-900/80 text-xs border border-slate-700/80 text-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500">
+                                <option value="ALL">All Team Members</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task Board Container -->
+                <div class="glass-panel rounded-2xl border-slate-800/80 overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <h3 class="font-bold text-sm text-slate-200">Active Task Deliverables</h3>
+                            <span id="activeCountBadge" class="bg-slate-800 text-slate-400 text-[11px] font-semibold px-2 py-0.5 rounded-full">0 Tasks</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-xs text-slate-400">
+                            <i class="fa-solid fa-circle-info text-indigo-400"></i>
+                            <span id="roleInstructionText">Click task status buttons to advance progress.</span>
+                        </div>
+                    </div>
+
+                    <div id="taskListContainer" class="divide-y divide-slate-800/60 min-h-[250px]">
+                        <!-- Tasks rendered dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: ANALYTICS & PERFORMANCE -->
+            <div id="tab-analytics" class="hidden space-y-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-white">Performance & Analytics Hub</h1>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Real-time metrics on team throughput, on-time deliveries, and productivity trends.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass-panel p-5 rounded-2xl border-slate-800">
+                        <h3 class="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-indigo-400"></i> Task Status Distribution
+                        </h3>
+                        <div class="h-64 flex items-center justify-center">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-5 rounded-2xl border-slate-800">
+                        <h3 class="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-bar text-purple-400"></i> On-Time Completion Rate by Member (%)
+                        </h3>
+                        <div class="h-64 flex items-center justify-center">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-2xl border-slate-800 overflow-hidden">
+                    <div class="p-5 border-b border-slate-800">
+                        <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-trophy text-amber-400"></i> Employee Efficiency Leaderboard
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900/80 text-slate-400 uppercase tracking-wider text-[10px]">
+                                <tr>
+                                    <th class="px-5 py-3">Employee</th>
+                                    <th class="px-5 py-3">Assigned Tasks</th>
+                                    <th class="px-5 py-3">Completed</th>
+                                    <th class="px-5 py-3">On-Time Rate</th>
+                                    <th class="px-5 py-3">Overdue Count</th>
+                                    <th class="px-5 py-3">Performance Score</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboardBody" class="divide-y divide-slate-800/60">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: TEAM OVERVIEW -->
+            <div id="tab-team" class="hidden space-y-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-white">FlowX Team Roster</h1>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Overview of active team members and current workload capacity.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="teamCardsGrid">
+                    <!-- Dynamic Team Cards -->
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- TASK CREATION / EDIT MODAL -->
+    <div id="taskModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                <h3 id="modalTitle" class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-square-plus text-indigo-400"></i> Assign New Task
+                </h3>
+                <button onclick="closeTaskModal()" class="text-slate-400 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="taskForm" onsubmit="handleTaskSubmit(event)" class="p-6 space-y-4">
+                <input type="hidden" id="taskIdInput">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Task Title <span class="text-rose-400">*</span></label>
+                    <input type="text" id="taskTitleInput" required placeholder="e.g. Build Payment Gateway Gateway Integration" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Assignee <span class="text-rose-400">*</span></label>
+                        <select id="taskAssigneeInput" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Priority Level <span class="text-rose-400">*</span></label>
+                        <select id="taskPriorityInput" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                            <option value="High">High Priority</option>
+                            <option value="Medium" selected>Medium Priority</option>
+                            <option value="Low">Low Priority</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Deadline Date & Time <span class="text-rose-400">*</span></label>
+                        <input type="datetime-local" id="taskDeadlineInput" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Initial Status</label>
+                        <select id="taskStatusInput" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                            <option value="To Do">To Do</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Submitted">Submitted (Under Review)</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Description / Instructions</label>
+                    <textarea id="taskDescInput" rows="3" placeholder="Provide clear requirements, API endpoints or references..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="closeTaskModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/30 transition">
+                        Save Task
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // System Accounts
+        const managers = [
+            { id: 'm1', name: 'Raj lucky', role: 'Project Director', email: 'luckhy@flowx.app', avatar: 'AV', color: 'bg-indigo-600', type: 'manager' },
+            { id: 'm2', name: 'Ritesh yadav', role: 'Engineering Manager', email: 'Ritesh@flowx.app', avatar: 'KM', color: 'bg-purple-600', type: 'manager' }
+        ];
+
+        const employees = [
+            { id: 'e1', name: 'lingeshwar', role: 'Senior Frontend Dev', email: 'lingeshwar@flowx.app', avatar: 'SJ', color: 'bg-purple-500', type: 'employee' },
+            { id: 'e2', name: 'sohel sayyed', role: 'Full Stack Engineer', email: 'sohel@flowx.app', avatar: 'RS', color: 'bg-indigo-500', type: 'employee' },
+            { id: 'e3', name: 'simran', role: 'UI/UX Designer', email: 'simran@flowx.app', avatar: 'PP', color: 'bg-emerald-500', type: 'employee' },
+            { id: 'e4', name: 'samrudhi', role: 'Backend Lead', email: 'samrudhi@flowx.app', avatar: 'AV', color: 'bg-amber-500', type: 'employee' }
+    ];
+
+        function getRelativeDate(daysOffset, hoursOffset = 0) {
+            const date = new Date();
+            date.setDate(date.getDate() + daysOffset);
+            date.setHours(date.getHours() + hoursOffset);
+            return date.toISOString().slice(0, 16);
+        }
+
+        // Default Initial Seed Data
+        const initialTasks = [
+            {
+                id: 'task-101',
+                title: 'Implement OAuth Single Sign-On',
+                assignee: 'Rahul Sharma',
+                priority: 'High',
+                deadline: getRelativeDate(-1), // Overdue
+                status: 'In Progress',
+                description: 'Integrate Google & GitHub logins with JWT session tokens.'
+            },
+            {
+                id: 'task-102',
+                title: 'Design Mobile Responsive Layouts',
+                assignee: 'Sarah Jenkins',
+                priority: 'High',
+                deadline: getRelativeDate(1), // Due Soon
+                status: 'Submitted',
+                description: 'Figma prototypes for high density employee workflow UI.'
+            },
+            {
+                id: 'task-103',
+                title: 'Optimize Query Indexes for Analytics',
+                assignee: 'Amit Verma',
+                priority: 'Medium',
+                deadline: getRelativeDate(3),
+                status: 'To Do',
+                description: 'Improve response times for employee leaderboard calculation.'
+            },
+            {
+                id: 'task-104',
+                title: 'Conduct Automated Playwright UI Testing',
+                assignee: 'Priya Patel',
+                priority: 'Low',
+                deadline: getRelativeDate(2),
+                status: 'In Progress',
+                description: 'Create end-to-end regression test scripts for task updates.'
+            }
+        ];
+
+        // State variables
+        let currentUser = null;
+        let tasks = JSON.parse(localStorage.getItem('flowx_tasks')) || initialTasks;
+        let statusChartInstance = null;
+        let performanceChartInstance = null;
+
+        // Initialization
+        window.onload = function() {
+            populateAuthSelects();
+            renderQuickLoginBadges();
+            populateAssigneeDropdowns();
+
+            // Check persistent session
+            const savedUser = localStorage.getItem('flowx_session');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                hideAuthScreen();
+                initWorkspace();
+            } else {
+                showAuthScreen();
+            }
+        };
+
+        function populateAuthSelects() {
+            const mgrSelect = document.getElementById('managerAccountSelect');
+            const empSelect = document.getElementById('employeeAccountSelect');
+
+            mgrSelect.innerHTML = managers.map(m => `<option value="${m.id}">${m.name} (${m.role})</option>`).join('');
+            empSelect.innerHTML = employees.map(e => `<option value="${e.id}">${e.name} (${e.role})</option>`).join('');
+        }
+
+        function renderQuickLoginBadges() {
+            const container = document.getElementById('quickLoginBadges');
+            const sampleUsers = [managers[0], employees[0], employees[1]];
+
+            container.innerHTML = sampleUsers.map(u => `
+                <button type="button" onclick="quickLogin('${u.id}', '${u.type}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[11px] font-semibold border border-slate-700/80 transition flex items-center space-x-1.5">
+                    <span class="w-2 h-2 rounded-full ${u.type === 'manager' ? 'bg-indigo-400' : 'bg-purple-400'}"></span>
+                    <span>${u.name} (${u.type === 'manager' ? 'Manager' : 'Employee'})</span>
+                </button>
+            `).join('');
+        }
+
+        function setAuthTab(tab) {
+            const mgrBtn = document.getElementById('tabBtnManager');
+            const empBtn = document.getElementById('tabBtnEmployee');
+            const formMgr = document.getElementById('formManager');
+            const formEmp = document.getElementById('formEmployee');
+
+            if (tab === 'manager') {
+                mgrBtn.className = "py-2 text-xs font-bold rounded-lg transition-all bg-indigo-600 text-white shadow";
+                empBtn.className = "py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200";
+                formMgr.classList.remove('hidden');
+                formEmp.classList.add('hidden');
+            } else {
+                empBtn.className = "py-2 text-xs font-bold rounded-lg transition-all bg-purple-600 text-white shadow";
+                mgrBtn.className = "py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200";
+                formEmp.classList.remove('hidden');
+                formMgr.classList.add('hidden');
+            }
+        }
+
+        function handleLogin(e, roleType) {
+            e.preventDefault();
+            const selectId = roleType === 'manager' ? 'managerAccountSelect' : 'employeeAccountSelect';
+            const userId = document.getElementById(selectId).value;
+            const userList = roleType === 'manager' ? managers : employees;
+            
+            currentUser = userList.find(u => u.id === userId);
+            saveSessionAndLaunch();
+        }
+
+        function quickLogin(userId, roleType) {
+            const userList = roleType === 'manager' ? managers : employees;
+            currentUser = userList.find(u => u.id === userId);
+            saveSessionAndLaunch();
+        }
+
+        function saveSessionAndLaunch() {
+            localStorage.setItem('flowx_session', JSON.stringify(currentUser));
+            hideAuthScreen();
+            initWorkspace();
+            showToast(`Logged in successfully as ${currentUser.name}`, 'success');
+        }
+
+        function logout() {
+            localStorage.removeItem('flowx_session');
+            currentUser = null;
+            showAuthScreen();
+            showToast('Logged out of FlowX', 'info');
+        }
+
+        function showAuthScreen() {
+            document.getElementById('authScreen').classList.remove('hidden');
+        }
+
+        function hideAuthScreen() {
+            document.getElementById('authScreen').classList.add('hidden');
+        }
+
+        function initWorkspace() {
+            // Update User Profile Header
+            const avatar = document.getElementById('userAvatar');
+            const nameDisplay = document.getElementById('userNameDisplay');
+            const roleDisplay = document.getElementById('userRoleDisplay');
+            const sidebarCreateCard = document.getElementById('sidebarCreateCard');
+            const createTaskBtnMain = document.getElementById('createTaskBtnMain');
+
+            avatar.innerText = currentUser.avatar;
+            avatar.className = `w-9 h-9 rounded-full ${currentUser.color} text-white font-bold flex items-center justify-center text-sm shadow-md`;
+            nameDisplay.innerText = currentUser.name;
+            roleDisplay.innerText = `${currentUser.role} (${currentUser.type === 'manager' ? 'Manager' : 'Employee'})`;
+
+            if (currentUser.type === 'manager') {
+                sidebarCreateCard.classList.remove('hidden');
+                createTaskBtnMain.classList.remove('hidden');
+                document.getElementById('welcomeTitle').innerText = "Team Workspace & Task Pipeline";
+                document.getElementById('welcomeSub').innerText = "Create tasks, set deadlines, and evaluate employee efficiency.";
+                document.getElementById('roleInstructionText').innerText = "Review submissions and manage active tasks.";
+            } else {
+                sidebarCreateCard.classList.add('hidden');
+                createTaskBtnMain.classList.add('hidden');
+                document.getElementById('welcomeTitle').innerText = `My Deliverables (${currentUser.name})`;
+                document.getElementById('welcomeSub').innerText = "Focus on assigned tasks, respect deadlines, and update progress.";
+                document.getElementById('roleInstructionText').innerText = "Single click to move tasks through work phases.";
+            }
+
+            renderTeamMembers();
+            renderTasks();
+            updateAnalytics();
+        }
+
+        function populateAssigneeDropdowns() {
+            const selectFilter = document.getElementById('filterAssignee');
+            const selectForm = document.getElementById('taskAssigneeInput');
+
+            selectFilter.innerHTML = '<option value="ALL">All Team Members</option>';
+            selectForm.innerHTML = '';
+
+            employees.forEach(m => {
+                selectFilter.innerHTML += `<option value="${m.name}">${m.name}</option>`;
+                selectForm.innerHTML += `<option value="${m.name}">${m.name} (${m.role})</option>`;
+            });
+        }
+
+        function switchTab(tabName) {
+            document.getElementById('tab-dashboard').classList.add('hidden');
+            document.getElementById('tab-analytics').classList.add('hidden');
+            document.getElementById('tab-team').classList.add('hidden');
+
+            document.getElementById('nav-dashboard').className = "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800/50 hover:text-slate-200";
+            document.getElementById('nav-analytics').className = "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800/50 hover:text-slate-200";
+            document.getElementById('nav-team').className = "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800/50 hover:text-slate-200";
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            document.getElementById(`nav-${tabName}`).className = "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all bg-indigo-600/10 text-indigo-400 border border-indigo-500/20";
+
+            if (tabName === 'analytics') {
+                updateAnalytics();
+            }
+        }
+
+        function filterByPriority(priority) {
+            switchTab('dashboard');
+            document.getElementById('filterPriority').value = priority;
+            renderTasks();
+        }
+
+        function getDeadlineStatus(deadlineStr, status) {
+            if (status === 'Completed') {
+                return { label: 'Completed', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', icon: 'fa-circle-check' };
+            }
+
+            const now = new Date();
+            const deadline = new Date(deadlineStr);
+            const diffHours = (deadline - now) / (1000 * 60 * 60);
+
+            if (diffHours < 0) {
+                return { label: 'Overdue', color: 'bg-rose-500/10 text-rose-400 border-rose-500/30 animate-pulse', icon: 'fa-circle-exclamation' };
+            } else if (diffHours <= 24) {
+                return { label: 'Due Soon', color: 'bg-amber-500/10 text-amber-400 border-amber-500/30', icon: 'fa-clock' };
+            } else {
+                return { label: 'On Track', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20', icon: 'fa-calendar-day' };
+            }
+        }
+
+        function getPriorityBadge(priority) {
+            switch(priority) {
+                case 'High': return '<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20"><i class="fa-solid fa-arrow-up mr-1"></i>High</span>';
+                case 'Medium': return '<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20"><i class="fa-solid fa-minus mr-1"></i>Medium</span>';
+                default: return '<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><i class="fa-solid fa-arrow-down mr-1"></i>Low</span>';
+            }
+        }
+
+        function getStatusBadge(status) {
+            switch(status) {
+                case 'To Do': return '<span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">To Do</span>';
+                case 'In Progress': return '<span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">In Progress</span>';
+                case 'Submitted': return '<span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">Submitted</span>';
+                case 'Completed': return '<span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Completed</span>';
+            }
+        }
+
+        function renderTasks() {
+            if (!currentUser) return;
+
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('filterStatus').value;
+            const priorityFilter = document.getElementById('filterPriority').value;
+            const assigneeFilter = document.getElementById('filterAssignee').value;
+
+            // Badges
+            document.getElementById('badgeHighCount').innerText = tasks.filter(t => t.priority === 'High').length;
+            document.getElementById('badgeMedCount').innerText = tasks.filter(t => t.priority === 'Medium').length;
+            document.getElementById('badgeLowCount').innerText = tasks.filter(t => t.priority === 'Low').length;
+
+            let filtered = tasks.filter(task => {
+                // Employee specific isolation
+                if (currentUser.type === 'employee' && task.assignee !== currentUser.name) {
+                    return false;
+                }
+
+                const matchesSearch = task.title.toLowerCase().includes(search) || 
+                                      task.description.toLowerCase().includes(search) ||
+                                      task.assignee.toLowerCase().includes(search);
+                const matchesStatus = statusFilter === 'ALL' || task.status === statusFilter;
+                const matchesPriority = priorityFilter === 'ALL' || task.priority === priorityFilter;
+                const matchesAssignee = currentUser.type === 'employee' ? true : (assigneeFilter === 'ALL' || task.assignee === assigneeFilter);
+
+                return matchesSearch && matchesStatus && matchesPriority && matchesAssignee;
+            });
+
+            document.getElementById('activeCountBadge').innerText = `${filtered.length} Tasks`;
+
+            const container = document.getElementById('taskListContainer');
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="p-12 text-center text-slate-500">
+                        <i class="fa-solid fa-folder-open text-4xl mb-3 text-slate-600"></i>
+                        <p class="text-sm font-semibold text-slate-400">No matching deliverables found</p>
+                        <p class="text-xs mt-1">Adjust search filter query or create a new task.</p>
+                    </div>
+                `;
+                updateSummaryStats();
+                return;
+            }
+
+            container.innerHTML = filtered.map(task => {
+                const deadlineInfo = getDeadlineStatus(task.deadline, task.status);
+                const formattedDeadline = new Date(task.deadline).toLocaleString('en-US', {
+                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+                const assigneeObj = employees.find(m => m.name === task.assignee) || { avatar: '?', color: 'bg-slate-700' };
+
+                return `
+                    <div class="p-4 sm:p-5 hover:bg-slate-900/40 transition flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="space-y-2 flex-1">
+                            <div class="flex items-center flex-wrap gap-2">
+                                ${getPriorityBadge(task.priority)}
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold border ${deadlineInfo.color} flex items-center gap-1">
+                                    <i class="fa-solid ${deadlineInfo.icon}"></i> ${deadlineInfo.label}
+                                </span>
+                                ${getStatusBadge(task.status)}
+                            </div>
+
+                            <h4 class="text-sm font-bold text-slate-100">${task.title}</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed max-w-2xl">${task.description || 'No detailed instructions provided.'}</p>
+
+                            <div class="flex items-center space-x-4 text-xs text-slate-400 pt-1">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-5 h-5 rounded-full ${assigneeObj.color} text-white font-bold flex items-center justify-center text-[10px]">
+                                        ${assigneeObj.avatar}
+                                    </div>
+                                    <span class="text-slate-300 font-medium">${task.assignee}</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <i class="fa-solid fa-calendar text-slate-500"></i>
+                                    <span>Deadline: ${formattedDeadline}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-2 self-end md:self-center pt-2 md:pt-0 border-t md:border-t-0 border-slate-800 w-full md:w-auto justify-end">
+                            ${getActionButton(task)}
+                            
+                            ${currentUser.type === 'manager' ? `
+                                <button onclick="editTask('${task.id}')" class="p-2 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 rounded-lg transition" title="Edit Task">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button onclick="deleteTask('${task.id}')" class="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition" title="Delete Task">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            updateSummaryStats();
+        }
+
+        function getActionButton(task) {
+            if (task.status === 'To Do') {
+                return `<button onclick="updateTaskStatus('${task.id}', 'In Progress')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow">
+                            <i class="fa-solid fa-play text-[10px]"></i> Start Task
+                        </button>`;
+            } else if (task.status === 'In Progress') {
+                return `<button onclick="updateTaskStatus('${task.id}', 'Submitted')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow">
+                            <i class="fa-solid fa-paper-plane text-[10px]"></i> Submit
+                        </button>`;
+            } else if (task.status === 'Submitted') {
+                if (currentUser.type === 'manager') {
+                    return `<button onclick="updateTaskStatus('${task.id}', 'Completed')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow">
+                                <i class="fa-solid fa-check text-[10px]"></i> Approve Task
+                            </button>`;
+                } else {
+                    return `<span class="text-xs text-purple-400 font-semibold bg-purple-500/10 px-2.5 py-1 rounded-lg border border-purple-500/20">Under Review</span>`;
+                }
+            } else {
+                return `<span class="text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20"><i class="fa-solid fa-circle-check mr-1"></i>Done</span>`;
+            }
+        }
+
+        function updateSummaryStats() {
+            const scopeTasks = currentUser.type === 'employee' ? tasks.filter(t => t.assignee === currentUser.name) : tasks;
+
+            const total = scopeTasks.length;
+            const completed = scopeTasks.filter(t => t.status === 'Completed').length;
+            const now = new Date();
+            const overdue = scopeTasks.filter(t => t.status !== 'Completed' && new Date(t.deadline) < now).length;
+            const onTimeRate = total > 0 ? Math.round((completed / total) * 100) : 100;
+
+            document.getElementById('statTotalTasks').innerText = total;
+            document.getElementById('statCompletedTasks').innerText = completed;
+            document.getElementById('statOnTimeRate').innerText = `${onTimeRate}%`;
+            document.getElementById('statOverdueTasks').innerText = overdue;
+        }
+
+        function updateTaskStatus(taskId, newStatus) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                task.status = newStatus;
+                saveTasksState();
+                showToast(`Task status updated to "${newStatus}"`, 'success');
+                renderTasks();
+                updateAnalytics();
+            }
+        }
+
+        function openCreateTaskModal() {
+            document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-square-plus text-indigo-400"></i> Assign New Task`;
+            document.getElementById('taskIdInput').value = '';
+            document.getElementById('taskForm').reset();
+            document.getElementById('taskDeadlineInput').value = getRelativeDate(2);
+            document.getElementById('taskModal').classList.remove('hidden');
+        }
+
+        function editTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-indigo-400"></i> Edit Task`;
+            document.getElementById('taskIdInput').value = task.id;
+            document.getElementById('taskTitleInput').value = task.title;
+            document.getElementById('taskAssigneeInput').value = task.assignee;
+            document.getElementById('taskPriorityInput').value = task.priority;
+            document.getElementById('taskDeadlineInput').value = task.deadline;
+            document.getElementById('taskStatusInput').value = task.status;
+            document.getElementById('taskDescInput').value = task.description;
+
+            document.getElementById('taskModal').classList.remove('hidden');
+        }
+
+        function closeTaskModal() {
+            document.getElementById('taskModal').classList.add('hidden');
+        }
+
+        function handleTaskSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('taskIdInput').value;
+            const title = document.getElementById('taskTitleInput').value;
+            const assignee = document.getElementById('taskAssigneeInput').value;
+            const priority = document.getElementById('taskPriorityInput').value;
+            const deadline = document.getElementById('taskDeadlineInput').value;
+            const status = document.getElementById('taskStatusInput').value;
+            const description = document.getElementById('taskDescInput').value;
+
+            if (id) {
+                const idx = tasks.findIndex(t => t.id === id);
+                if (idx !== -1) {
+                    tasks[idx] = { id, title, assignee, priority, deadline, status, description };
+                    showToast('Task updated successfully!', 'success');
+                }
+            } else {
+                const newTask = {
+                    id: 'task-' + Date.now(),
+                    title,
+                    assignee,
+                    priority,
+                    deadline,
+                    status,
+                    description
+                };
+                tasks.unshift(newTask);
+                showToast(`Task assigned to ${assignee}!`, 'success');
+            }
+
+            saveTasksState();
+            closeTaskModal();
+            renderTasks();
+            updateAnalytics();
+        }
+
+        function deleteTask(taskId) {
+            tasks = tasks.filter(t => t.id !== taskId);
+            saveTasksState();
+            showToast('Task removed.', 'info');
+            renderTasks();
+            updateAnalytics();
+        }
+
+        function saveTasksState() {
+            localStorage.setItem('flowx_tasks', JSON.stringify(tasks));
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-indigo-600' : 'bg-slate-800 border border-slate-700';
+            
+            toast.className = `${bgClass} text-white text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2 pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function updateAnalytics() {
+            if (!document.getElementById('statusChart')) return;
+
+            const statusCounts = {
+                'To Do': tasks.filter(t => t.status === 'To Do').length,
+                'In Progress': tasks.filter(t => t.status === 'In Progress').length,
+                'Submitted': tasks.filter(t => t.status === 'Submitted').length,
+                'Completed': tasks.filter(t => t.status === 'Completed').length
+            };
+
+            const ctx1 = document.getElementById('statusChart').getContext('2d');
+            if (statusChartInstance) statusChartInstance.destroy();
+
+            statusChartInstance = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusCounts),
+                    datasets: [{
+                        data: Object.values(statusCounts),
+                        backgroundColor: ['#475569', '#6366f1', '#a855f7', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11 } }
+                        }
+                    }
+                }
+            });
+
+            const memberStats = employees.map(member => {
+                const memberTasks = tasks.filter(t => t.assignee === member.name);
+                const completed = memberTasks.filter(t => t.status === 'Completed').length;
+                const overdue = memberTasks.filter(t => t.status !== 'Completed' && new Date(t.deadline) < new Date()).length;
+                const total = memberTasks.length;
+                const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+                return { ...member, total, completed, overdue, rate };
+            });
+
+            const ctx2 = document.getElementById('performanceChart').getContext('2d');
+            if (performanceChartInstance) performanceChartInstance.destroy();
+
+            performanceChartInstance = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: memberStats.map(m => m.name.split(' ')[0]),
+                    datasets: [{
+                        label: 'Completion Rate (%)',
+                        data: memberStats.map(m => m.rate),
+                        backgroundColor: '#6366f1',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { color: '#94a3b8' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        x: {
+                            ticks: { color: '#94a3b8' },
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            const leaderboardBody = document.getElementById('leaderboardBody');
+            leaderboardBody.innerHTML = memberStats.map(m => `
+                <tr class="hover:bg-slate-900/40">
+                    <td class="px-5 py-3.5 flex items-center space-x-2.5">
+                        <div class="w-7 h-7 rounded-full ${m.color} text-white font-bold flex items-center justify-center text-xs">
+                            ${m.avatar}
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-200">${m.name}</p>
+                            <p class="text-[10px] text-slate-400">${m.role}</p>
+                        </div>
+                    </td>
+                    <td class="px-5 py-3.5 font-semibold text-slate-300">${m.total}</td>
+                    <td class="px-5 py-3.5 font-semibold text-emerald-400">${m.completed}</td>
+                    <td class="px-5 py-3.5">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-16 bg-slate-800 rounded-full h-1.5">
+                                <div class="bg-indigo-500 h-1.5 rounded-full" style="width: ${m.rate}%"></div>
+                            </div>
+                            <span class="font-bold text-slate-200">${m.rate}%</span>
+                        </div>
+                    </td>
+                    <td class="px-5 py-3.5 font-semibold ${m.overdue > 0 ? 'text-rose-400' : 'text-slate-400'}">${m.overdue}</td>
+                    <td class="px-5 py-3.5">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${m.rate >= 50 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}">
+                            ${m.rate >= 75 ? '⭐ Top Performer' : (m.rate >= 40 ? '👍 On Track' : '⚡ Needs Focus')}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderTeamMembers() {
+            const grid = document.getElementById('teamCardsGrid');
+            grid.innerHTML = employees.map(m => {
+                const memberTasks = tasks.filter(t => t.assignee === m.name);
+                const activeCount = memberTasks.filter(t => t.status !== 'Completed').length;
+
+                return `
+                    <div class="glass-panel p-5 rounded-2xl border-slate-800 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl ${m.color} text-white font-bold flex items-center justify-center shadow-lg">
+                                    ${m.avatar}
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-slate-100">${m.name}</h4>
+                                    <p class="text-xs text-slate-400">${m.role}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-xs text-slate-400 space-y-1">
+                            <p><i class="fa-solid fa-envelope mr-1.5 text-slate-500"></i> ${m.email}</p>
+                        </div>
+
+                        <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                            <span class="text-slate-400">Active Workload:</span>
+                            <span class="px-2 py-0.5 rounded-md font-bold bg-indigo-500/10 text-indigo-400">${activeCount} Tasks Pending</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>
